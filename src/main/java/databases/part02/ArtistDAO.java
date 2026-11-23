@@ -2,6 +2,11 @@ package databases.part02;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Data Access Object for the Artist table in the Chinook database.
@@ -33,6 +38,21 @@ public class ArtistDAO {
      */
     public List<Artist> getArtists() {
         List<Artist> artists = new ArrayList<>();
+        String sql = "SELECT ArtistId, Name FROM Artist ORDER BY NAME ASC";
+        try (Connection connection = DriverManager.getConnection(connectionString);
+    PreparedStatement statement = connection.prepareStatement(sql);
+    ResultSet resultSet = statement.executeQuery()) {
+        while(resultSet.next()){
+            long id = resultSet.getLong("ArtistId");
+            String name = resultSet.getString("Name");
+
+            Artist artist = new Artist(id, name);
+            artists.add(artist);
+            
+        }
+    } catch (SQLException e){
+        e.printStackTrace();
+    }
 
         /*
          * hint: see the class from part 1 for an example of how to connect to the
@@ -56,6 +76,20 @@ public class ArtistDAO {
      *         that id.
      */
     public Artist getArtistById(long id) {
+        String sql = "SELECT ArtistId, Name FROM Artist WHERE ArtistId = ?";
+        try (Connection connection = DriverManager .getConnection(connectionString);
+    PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, id); 
+        try (ResultSet resultSet = statement.executeQuery()) {
+            if (resultSet.next()) {
+                long artistid = resultSet.getLong("ArtistId");
+                String name = resultSet.getString("name");
+                return new Artist(artistid, name);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
         /*
          * hint: use similar code to the getArtists() method above, but add a WHERE
          * clause to the SQL query to only retrieve the artist with the specified id.
